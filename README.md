@@ -1,6 +1,6 @@
 # bulletml_runtime
 
-BulletML の XML を Python で解釈して弾幕を実行するためのライブラリ。
+[BulletML](https://www.asahi-net.or.jp/~cs8k-cyu/bulletml/) の XML を Python で解釈して弾幕を実行するためのライブラリ。
 
 ## インストール
 src以下のファイルをコピーして使ってください。
@@ -34,7 +34,7 @@ print(document.fires)      # トップレベルの Fire
 actions = action_index(document)
 bullets = bullet_index(document)
 fires = fire_index(document)
-print(actions["topPinkSpokes"])
+print(actions["huntingFan"])
 ```
 
 XML 文字列を直接パースする場合は `parse_bulletml()` を使います。
@@ -107,7 +107,7 @@ def update() -> None:
 
 ### 起点となる action
 
-既定では、label が `top` で始まるトップレベル action（例: `top`, `top1`, `topBlueVortex`）をすべて並行実行します。別の action だけを起点にする場合は、その label を `root_action_label` に指定します。
+既定では、label が `top` で始まるトップレベル action（例: `top`, `top1`, `topAttack`）をすべて並行実行します。別の action だけを起点にする場合は、その label を `root_action_label` に指定します。
 
 ```python
 runtime = BulletMLRuntime(
@@ -115,7 +115,7 @@ runtime = BulletMLRuntime(
     origin_x=160.0,
     origin_y=48.0,
     target_position=lambda: (160.0, 220.0),
-    root_action_label="topPinkSpokes",
+    root_action_label="huntingFan",
 )
 ```
 

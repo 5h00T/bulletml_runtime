@@ -6,18 +6,20 @@ import pyxel
 
 from src.bulletml_parser import BulletMLParseError, load_bulletml
 from src.bulletml_runtime import BulletMLRuntime, BulletMLRuntimeError
-from pyxel_bullet_view import draw_bullet, is_outside_viewport
+from pyxel_bullet_view import BULLET_RADIUS, draw_bullet, is_outside_viewport
 
 ROOT = Path(__file__).resolve().parent
-SIMPLE_BARRAGE_PATH = ROOT / "simple_barrage.xml"
+SIMPLE_BARRAGE_PATH = ROOT / "danmaku.xml"
 WINDOW_WIDTH = 320
 WINDOW_HEIGHT = 240
+APP_FPS = 30
 HEADER_HEIGHT = 36
 EMITTER_WIDTH = 6
 EMITTER_HEIGHT = 4
 PLAYER_SIZE = 5
 PLAYER_SPEED = 2.0
 PLAYER_SLOW_SPEED = 1.0
+PLAYER_HITBOX_RADIUS = PLAYER_SIZE / 2.0
 DIAGONAL_FACTOR = 2**-0.5
 
 
@@ -64,11 +66,51 @@ def truncate_text(text: str, max_length: int) -> str:
     return f"{text[: max_length - 3]}..."
 
 
+def moving_points_collide(
+    bullet_start: tuple[float, float],
+    bullet_end: tuple[float, float],
+    player_start: tuple[float, float],
+    player_end: tuple[float, float],
+    radius: float,
+) -> bool:
+    """Check a whole frame of relative movement so fast bullets cannot tunnel."""
+    relative_start_x = bullet_start[0] - player_start[0]
+    relative_start_y = bullet_start[1] - player_start[1]
+    relative_delta_x = (
+        bullet_end[0] - bullet_start[0] - (player_end[0] - player_start[0])
+    )
+    relative_delta_y = (
+        bullet_end[1] - bullet_start[1] - (player_end[1] - player_start[1])
+    )
+    segment_length_squared = (
+        relative_delta_x * relative_delta_x + relative_delta_y * relative_delta_y
+    )
+    if segment_length_squared == 0.0:
+        closest_x = relative_start_x
+        closest_y = relative_start_y
+    else:
+        closest_time = (
+            -(relative_start_x * relative_delta_x + relative_start_y * relative_delta_y)
+            / segment_length_squared
+        )
+        closest_time = min(max(closest_time, 0.0), 1.0)
+        closest_x = relative_start_x + relative_delta_x * closest_time
+        closest_y = relative_start_y + relative_delta_y * closest_time
+    return closest_x * closest_x + closest_y * closest_y <= radius * radius
+
+
 class SimpleBarrageApp:
     def __init__(self) -> None:
-        pyxel.init(WINDOW_WIDTH, WINDOW_HEIGHT, title="BulletML Simple Barrage")
+        pyxel.init(
+            WINDOW_WIDTH,
+            WINDOW_HEIGHT,
+            title="BulletML Unavoidable Barrage",
+            fps=APP_FPS,
+        )
         self.error_message: str | None = None
         self.runtime: BulletMLRuntime | None = None
+        self.game_over = False
+        self.survival_frames = 0
         self.emitter_position = (pyxel.width / 2.0, float(HEADER_HEIGHT + 12))
         self.player_position = (pyxel.width / 2.0, float(pyxel.height - 12))
 
@@ -89,6 +131,8 @@ class SimpleBarrageApp:
                 origin_y=self.emitter_position[1],
                 target_position=lambda: self.player_position,
             )
+            self.game_over = False
+            self.survival_frames = 0
             self.error_message = None
         except (BulletMLParseError, BulletMLRuntimeError, OSError) as exc:
             self.runtime = None
@@ -97,6 +141,10 @@ class SimpleBarrageApp:
     def update(self) -> None:
         if pyxel.btnp(pyxel.KEY_R):
             self._load_runtime()
+        if self.game_over:
+            return
+
+        previous_player_position = self.player_position
         movement_speed = (
             PLAYER_SLOW_SPEED if pyxel.btn(pyxel.KEY_SHIFT) else PLAYER_SPEED
         )
@@ -111,7 +159,22 @@ class SimpleBarrageApp:
             pyxel.height,
         )
         if self.runtime is not None:
+            previous_bullet_positions = {
+                id(bullet): (bullet.x, bullet.y) for bullet in self.runtime.bullets
+            }
             self.runtime.step()
+            self.survival_frames += 1
+            collision_radius = PLAYER_HITBOX_RADIUS + BULLET_RADIUS
+            self.game_over = any(
+                moving_points_collide(
+                    previous_bullet_positions.get(id(bullet), self.emitter_position),
+                    (bullet.x, bullet.y),
+                    previous_player_position,
+                    self.player_position,
+                    collision_radius,
+                )
+                for bullet in self.runtime.bullets
+            )
             self.runtime.remove_bullets_if(
                 lambda bullet: is_outside_viewport(
                     bullet,
@@ -147,11 +210,22 @@ class SimpleBarrageApp:
         bullet_count = len(bullets)
         pyxel.text(4, 12, f"frame: {frame_count}", 6)
         pyxel.text(4, 20, f"bullets: {bullet_count}", 10)
-        pyxel.text(4, 28, "WASD: move  SHIFT: slow  R: reload", 12)
+        if self.game_over:
+            pyxel.text(4, 28, "HIT!  R: retry", 8)
+        else:
+            pyxel.text(4, 28, "WASD: move  SHIFT: slow  R: retry", 12)
 
         if self.runtime is not None:
             for bullet in bullets:
                 draw_bullet(bullet)
+            if self.game_over:
+                message = f"UNAVOIDABLE  {self.survival_frames / APP_FPS:.2f}s"
+                box_width = len(message) * 4 + 8
+                box_x = (pyxel.width - box_width) // 2
+                box_y = (HEADER_HEIGHT + pyxel.height) // 2 - 8
+                pyxel.rect(box_x, box_y, box_width, 15, 0)
+                pyxel.rectb(box_x, box_y, box_width, 15, 8)
+                pyxel.text(box_x + 4, box_y + 5, message, 8)
             return
 
         pyxel.text(4, 48, "runtime load failed", 8)

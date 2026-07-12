@@ -1,0 +1,9 @@
+[project]
+name = "bulletml-runtime"
+version = "0.1.0"
+description = "A BulletML parser and frame-based runtime for Python"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pyxel>=2.9.5",
+]

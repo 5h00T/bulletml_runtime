@@ -1,0 +1,2 @@
+# Keep all detected text files normalized and checked out with LF line endings.
+* text=auto eol=lf

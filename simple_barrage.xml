@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<!DOCTYPE bulletml SYSTEM "http://www.asahi-net.or.jp/~cs8k-cyu/bulletml/bulletml.dtd">
+
+<bulletml xmlns="http://www.asahi-net.or.jp/~cs8k-cyu/bulletml">
+  <bullet label="pinkNeedle">
+    <action>
+      <wait>170</wait>
+      <vanish/>
+    </action>
+  </bullet>
+
+  <bullet label="blueNeedle">
+    <action>
+      <wait>125</wait>
+      <vanish/>
+    </action>
+  </bullet>
+
+  <action label="fourPinkSpokes">
+    <fire>
+      <direction type="sequence">$1 - 270</direction>
+      <speed>$2</speed>
+      <bulletRef label="pinkNeedle"/>
+    </fire>
+    <repeat>
+      <times>3</times>
+      <action>
+        <fire>
+          <direction type="sequence">90</direction>
+          <speed>$2</speed>
+          <bulletRef label="pinkNeedle"/>
+        </fire>
+      </action>
+    </repeat>
+  </action>
+
+  <action label="blueVortexRing">
+    <fire>
+      <direction type="sequence">$1 - 336</direction>
+      <speed>$2</speed>
+      <bulletRef label="blueNeedle"/>
+    </fire>
+    <repeat>
+      <times>14</times>
+      <action>
+        <fire>
+          <direction type="sequence">24</direction>
+          <speed type="sequence">0.025</speed>
+          <bulletRef label="blueNeedle"/>
+        </fire>
+      </action>
+    </repeat>
+  </action>
+
+  <action label="topPinkSpokes">
+    <repeat>
+      <times>999</times>
+      <action>
+        <repeat>
+          <times>44</times>
+          <action>
+            <actionRef label="fourPinkSpokes">
+              <param>8.5</param>
+              <param>1.72</param>
+            </actionRef>
+            <wait>1</wait>
+          </action>
+        </repeat>
+        <wait>8</wait>
+        <repeat>
+          <times>44</times>
+          <action>
+            <actionRef label="fourPinkSpokes">
+              <param>-8.5</param>
+              <param>1.72</param>
+            </actionRef>
+            <wait>1</wait>
+          </action>
+        </repeat>
+        <wait>464</wait>
+      </action>
+    </repeat>
+  </action>
+
+  <action label="topBlueVortex">
+    <wait>192</wait>
+    <repeat>
+      <times>999</times>
+      <action>
+        <repeat>
+          <times>72</times>
+          <action>
+            <actionRef label="blueVortexRing">
+              <param>6.75</param>
+              <param>2.18</param>
+            </actionRef>
+            <wait>2</wait>
+          </action>
+        </repeat>
+        <wait>10</wait>
+        <repeat>
+          <times>72</times>
+          <action>
+            <actionRef label="blueVortexRing">
+              <param>-6.75</param>
+              <param>2.18</param>
+            </actionRef>
+            <wait>2</wait>
+          </action>
+        </repeat>
+        <wait>18</wait>
+        <wait>184</wait>
+      </action>
+    </repeat>
+  </action>
+</bulletml>

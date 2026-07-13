@@ -148,8 +148,10 @@ class SimpleBarrageApp:
         movement_speed = (
             PLAYER_SLOW_SPEED if pyxel.btn(pyxel.KEY_SHIFT) else PLAYER_SPEED
         )
-        direction_x = int(pyxel.btn(pyxel.KEY_D)) - int(pyxel.btn(pyxel.KEY_A))
-        direction_y = int(pyxel.btn(pyxel.KEY_S)) - int(pyxel.btn(pyxel.KEY_W))
+        direction_x = int(pyxel.btn(pyxel.KEY_RIGHT)) - int(
+            pyxel.btn(pyxel.KEY_LEFT)
+        )
+        direction_y = int(pyxel.btn(pyxel.KEY_DOWN)) - int(pyxel.btn(pyxel.KEY_UP))
         self.player_position = move_player_position(
             self.player_position,
             direction_x,
@@ -213,7 +215,7 @@ class SimpleBarrageApp:
         if self.game_over:
             pyxel.text(4, 28, "HIT!  R: retry", 8)
         else:
-            pyxel.text(4, 28, "WASD: move  SHIFT: slow  R: retry", 12)
+            pyxel.text(4, 28, "ARROWS: move  SHIFT: slow  R: retry", 12)
 
         if self.runtime is not None:
             for bullet in bullets:

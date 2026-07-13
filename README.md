@@ -19,7 +19,7 @@ from src.bulletml_parser import (
 )
 
 try:
-    document = load_bulletml("simple_barrage.xml")
+    document = load_bulletml("danmaku.xml")
 except (BulletMLParseError, OSError) as exc:
     print(f"BulletML の読み込みに失敗しました: {exc}")
     raise
@@ -34,7 +34,7 @@ print(document.fires)      # トップレベルの Fire
 actions = action_index(document)
 bullets = bullet_index(document)
 fires = fire_index(document)
-print(actions["huntingFan"])
+print(actions["topPinkSpokes"])
 ```
 
 XML 文字列を直接パースする場合は `parse_bulletml()` を使います。
@@ -61,7 +61,7 @@ document = parse_bulletml(xml_text)
 from src.bulletml_parser import load_bulletml
 from src.bulletml_runtime import BulletMLRuntime, BulletMLRuntimeError
 
-document = load_bulletml("simple_barrage.xml")
+document = load_bulletml("danmaku.xml")
 
 # プレイヤーが移動しても最新の座標を返せるよう、関数として渡します。
 player_position = [160.0, 220.0]
@@ -115,7 +115,7 @@ runtime = BulletMLRuntime(
     origin_x=160.0,
     origin_y=48.0,
     target_position=lambda: (160.0, 220.0),
-    root_action_label="huntingFan",
+    root_action_label="topPinkSpokes",
 )
 ```
 
@@ -146,6 +146,9 @@ Pyxel を使ったサンプルビューアーを実行できます。
 ```console
 uv run python viewer.py
 ```
+
+`Tab` キーで通常弾幕、全周リング型の `sample/impossible_1.xml`、高速追尾包囲型の
+`sample/impossible_2.xml` を切り替えられます。`R` キーで現在の弾幕を最初からやり直します。
 
 ## License
 

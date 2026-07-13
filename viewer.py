@@ -9,7 +9,11 @@ from src.bulletml_runtime import BulletMLRuntime, BulletMLRuntimeError
 from pyxel_bullet_view import BULLET_RADIUS, draw_bullet, is_outside_viewport
 
 ROOT = Path(__file__).resolve().parent
-SIMPLE_BARRAGE_PATH = ROOT / "danmaku.xml"
+BARRAGE_PATHS = (
+    ROOT / "danmaku.xml",
+    ROOT / "sample" / "impossible_1.xml",
+    ROOT / "sample" / "impossible_2.xml",
+)
 WINDOW_WIDTH = 320
 WINDOW_HEIGHT = 240
 APP_FPS = 30
@@ -109,6 +113,7 @@ class SimpleBarrageApp:
         )
         self.error_message: str | None = None
         self.runtime: BulletMLRuntime | None = None
+        self.barrage_index = 0
         self.game_over = False
         self.survival_frames = 0
         self.emitter_position = (pyxel.width / 2.0, float(HEADER_HEIGHT + 12))
@@ -117,9 +122,13 @@ class SimpleBarrageApp:
         self._load_runtime()
         pyxel.run(self.update, self.draw)
 
+    @property
+    def barrage_path(self) -> Path:
+        return BARRAGE_PATHS[self.barrage_index]
+
     def _load_runtime(self) -> None:
         try:
-            document = load_bulletml(SIMPLE_BARRAGE_PATH)
+            document = load_bulletml(self.barrage_path)
             self.emitter_position, self.player_position = runtime_positions(
                 document.type,
                 pyxel.width,
@@ -139,6 +148,9 @@ class SimpleBarrageApp:
             self.error_message = str(exc)
 
     def update(self) -> None:
+        if pyxel.btnp(pyxel.KEY_TAB):
+            self.barrage_index = (self.barrage_index + 1) % len(BARRAGE_PATHS)
+            self._load_runtime()
         if pyxel.btnp(pyxel.KEY_R):
             self._load_runtime()
         if self.game_over:
@@ -205,7 +217,7 @@ class SimpleBarrageApp:
         )
         pyxel.pset(int(self.player_position[0]), int(self.player_position[1]), 7)
 
-        pyxel.text(4, 4, f"xml: {SIMPLE_BARRAGE_PATH.name}", 7)
+        pyxel.text(4, 4, f"xml: {self.barrage_path.name}", 7)
 
         bullets = () if self.runtime is None else self.runtime.bullets
         frame_count = 0 if self.runtime is None else self.runtime.frame_count
@@ -213,9 +225,9 @@ class SimpleBarrageApp:
         pyxel.text(4, 12, f"frame: {frame_count}", 6)
         pyxel.text(4, 20, f"bullets: {bullet_count}", 10)
         if self.game_over:
-            pyxel.text(4, 28, "HIT!  R: retry", 8)
+            pyxel.text(4, 28, "HIT! R:retry TAB:next", 8)
         else:
-            pyxel.text(4, 28, "ARROWS: move  SHIFT: slow  R: retry", 12)
+            pyxel.text(4, 28, "ARROWS:move SHIFT:slow R:retry TAB:next", 12)
 
         if self.runtime is not None:
             for bullet in bullets:

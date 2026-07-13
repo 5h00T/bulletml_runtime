@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!DOCTYPE bulletml SYSTEM "http://www.asahi-net.or.jp/~cs8k-cyu/bulletml/bulletml.dtd">
+
+<!--
+  高速追尾包囲型の不可能弾幕。
+  扇状に展開した弾が、自機より速く加速して毎フレーム自機を追尾する。
+-->
+<bulletml xmlns="http://www.asahi-net.or.jp/~cs8k-cyu/bulletml" type="vertical">
+  <bullet label="hunter">
+    <action>
+      <wait>24</wait>
+      <changeSpeed>
+        <speed type="absolute">2.85</speed>
+        <term>10</term>
+      </changeSpeed>
+      <repeat>
+        <times>210</times>
+        <action>
+          <changeDirection>
+            <direction type="aim">0</direction>
+            <term>1</term>
+          </changeDirection>
+          <wait>1</wait>
+        </action>
+      </repeat>
+      <vanish/>
+    </action>
+  </bullet>
+
+  <action label="huntingFan">
+    <fire>
+      <direction type="absolute">54</direction>
+      <speed>1.45</speed>
+      <bulletRef label="hunter"/>
+    </fire>
+    <repeat>
+      <times>18</times>
+      <action>
+        <fire>
+          <direction type="sequence">4</direction>
+          <speed>1.45</speed>
+          <bulletRef label="hunter"/>
+        </fire>
+      </action>
+    </repeat>
+  </action>
+
+  <action label="top">
+    <repeat>
+      <times>999</times>
+      <action>
+        <actionRef label="huntingFan"/>
+        <wait>22</wait>
+      </action>
+    </repeat>
+  </action>
+</bulletml>
